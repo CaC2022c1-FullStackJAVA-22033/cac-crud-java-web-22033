@@ -1,9 +1,9 @@
 
-package cac.crud22034.controlador;
+package cac.crud22033.controlador;
 
-import cac.crud22034.modelo.Alumno;
-import cac.crud22034.modelo.Modelo;
-import cac.crud22034.modelo.ModeloFactory;
+import cac.crud22033.modelo.Alumno;
+import cac.crud22033.modelo.Modelo;
+import cac.crud22033.modelo.ModeloFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import javax.servlet.ServletException;
@@ -34,7 +34,7 @@ public class AppServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        int id;
+        request.setAttribute("listaAlumnos", model.getAlumnos());
         request.getRequestDispatcher(URI_LIST).forward(request, response);
     }
 

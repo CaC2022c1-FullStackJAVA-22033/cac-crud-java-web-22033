@@ -1,4 +1,3 @@
-
 package cac.crud22033.controlador;
 
 import cac.crud22033.modelo.Alumno;
@@ -25,6 +24,8 @@ public class AppServlet extends HttpServlet {
 
     private Modelo model;
     private final String URI_LIST = "listadoAlumnos.jsp";
+    private final String URI_REMOVE = "/WEB-INF/pages/alumnos/borrarAlumno.jsp";
+    private final String URI_EDIT = "/WEB-INF/pages/alumnos/editarAlumno.jsp";
 
     @Override
     public void init() throws ServletException {
@@ -34,8 +35,29 @@ public class AppServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        request.setAttribute("listaAlumnos", model.getAlumnos());
-        request.getRequestDispatcher(URI_LIST).forward(request, response);
+        String accion = request.getParameter("accion");
+        accion = accion == null ? "" : accion;
+        int id;
+        Alumno alu;
+        switch (accion) {
+            case "edit":
+                id = Integer.parseInt(request.getParameter("id"));
+                alu = model.getAlumno(id);
+                request.setAttribute("yaTieneFoto", !alu.getFoto().contains("no-face"));
+                request.setAttribute("alumnoAEditar", alu);
+                request.getRequestDispatcher(URI_EDIT).forward(request, response);
+                break;
+            case "remove":
+                id = Integer.parseInt(request.getParameter("id"));
+                alu = model.getAlumno(id);
+                request.setAttribute("alumnoABorrar", alu);
+                request.getRequestDispatcher(URI_REMOVE).forward(request, response);
+                break;
+            default:
+                request.setAttribute("listaAlumnos", model.getAlumnos());
+                request.getRequestDispatcher(URI_LIST).forward(request, response);
+        }
+
     }
 
     @Override
@@ -44,20 +66,27 @@ public class AppServlet extends HttpServlet {
         Alumno alu;
         String accion = request.getParameter("accion");
         accion = accion == null ? "" : accion;
+        int id;
         switch (accion) {
             case "add":
-                alu = new Alumno();                
+                alu = new Alumno();
                 cargarAlumnoSegunParams(alu, request);
                 model.addAlumno(alu);
                 break;
             case "update":
+                id = Integer.parseInt(request.getParameter("id"));
+                alu = model.getAlumno(id);
+                cargarAlumnoSegunParams(alu, request);
+                model.updateAlumno(alu);
                 break;
             case "delete":
+                id = Integer.parseInt(request.getParameter("id"));
+                model.removeAlumno(id);
                 break;
-        }        
+        }
         doGet(request, response);
     }
-    
+
     private void cargarAlumnoSegunParams(Alumno a, HttpServletRequest request) {
         a.setNombre(request.getParameter("nombre"));
         a.setApellido(request.getParameter("apellido"));
@@ -65,10 +94,10 @@ public class AppServlet extends HttpServlet {
         a.setFechaNacimiento(request.getParameter("fechaNac"));
         a.setFoto(request.getParameter("fotoBase64"));
     }
-    
+
     private Modelo getModelo() throws ServletException {
         Modelo m = null;
-        try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream("config.properties")) {
+        try ( InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream("config.properties")) {
             Properties props = new Properties();
             props.load(is);
             String tipoModelo = props.getProperty("tipoModelo");
